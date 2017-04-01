@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using Xwt;
 using Application = Xwt.Application;
 using MenuItem = Xwt.MenuItem;
@@ -30,10 +29,17 @@ namespace PasswordManager.UI
 
             Menu mainMenu = new Menu();
 
-            // Adds a 'Help' tab to Main Menu
+            // Creates the 'Help' menu item
             MenuItem helpMenu = new MenuItem("Help");
+            helpMenu.SubMenu = new Menu();
+            
+            // Adds 'About' command to 'Help' menu
+            MenuItem aboutPage = new MenuItem(new Command("About"));
+            helpMenu.SubMenu.Items.Add(aboutPage);
             mainMenu.Items.Add(helpMenu);
 
+            aboutPage.Clicked += (sender, e) => MessageDialog.ShowMessage("'About' clicked.");
+            
             mainWindow.MainMenu = mainMenu;
 
             mainWindow.Show();
