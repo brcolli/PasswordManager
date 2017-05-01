@@ -72,9 +72,9 @@ namespace PasswordManager.UI
             aboutSubMenu.Clicked += delegate
             {
                 // Make about page
-                AboutPage aboutPage = new AboutPage(this);
+                AboutPage = new AboutPage(this);
 
-                MainWindow.Content = aboutPage;
+                MainWindow.Content = AboutPage;
             };
             homeCommand.Clicked += delegate
             {
@@ -88,10 +88,10 @@ namespace PasswordManager.UI
                 }
                 else // Else send to home page
                 {
-                    // Make about page
-                    AboutPage aboutPage = new AboutPage(this); // TEMPORARY
+                    // Make management page
+                    ManagementPage = new ManagementPage(this);
 
-                    MainWindow.Content = aboutPage;
+                    MainWindow.Content = ManagementPage;
                 }
             };
             logoutCommand.Clicked += delegate
@@ -135,6 +135,7 @@ namespace PasswordManager.UI
         // Pages
         public LoginPage LoginPage { get; set; }
         public AboutPage AboutPage { get; set; }
+        public ManagementPage ManagementPage { get; set; }
 
         public Boolean LoggedIn { get; set; }
     }

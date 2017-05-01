@@ -21,11 +21,8 @@ namespace PasswordManager.UI
         /// <summary>
         /// Login page
         /// </summary>
-        /// <param name="mainMenu">
-        /// The main menu item
-        /// </param>
-        /// <param name="loggedIn">
-        /// State of user, for toggling 'Log' buttons
+        /// <param name="gm">
+        /// The manager
         /// </param>
         public LoginPage(GUIManager gm)
         {
@@ -69,11 +66,11 @@ namespace PasswordManager.UI
             {
                 gm.LoggedIn = true;
 
-                // Make about page
-                AboutPage aboutPage = new AboutPage(gm); // TEMPORARY
+                // Make management page
+                ManagementPage managementPage = new ManagementPage(gm);
 
                 // In here, check for username/password validation and log in
-                gm.MainWindow.Content = aboutPage;
+                gm.MainWindow.Content = managementPage;
             };
 
             gm.SetLogoutButton();

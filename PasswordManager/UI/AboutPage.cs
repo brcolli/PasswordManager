@@ -15,11 +15,8 @@ namespace PasswordManager.UI
         /// <summary>
         /// Sets up the 'About' page
         /// </summary>
-        /// <param name="mainMenu">
-        /// The main menu item
-        /// </param>
-        /// <param name="loggedIn">
-        /// State of user, for toggling 'Log' buttons
+        /// <param name="gm">
+        /// The manager
         /// </param>
         public AboutPage(GUIManager gm)
         {
