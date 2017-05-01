@@ -1,12 +1,13 @@
-﻿/**
- * Runs the application.
- */
-
-using System;
+﻿using System;
 using Xwt;
 
 namespace PasswordManager.UI
 {
+
+    /// <summary>
+    /// Runs the application.
+    /// </summary>
+
     class PasswordManager
     {
 
@@ -16,9 +17,9 @@ namespace PasswordManager.UI
             GUIManager manager = new GUIManager();
 
             // Run
-            manager.MainWindow().Show();
+            manager.MainWindow.Show();
             Application.Run();
-            manager.MainWindow().Dispose();
+            manager.MainWindow.Dispose();
         }
     }
 }

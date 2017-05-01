@@ -1,9 +1,4 @@
-﻿/**
- * For designing and controlling the visual interface
- * used to operate the Password Manager.
- */
-
-using System;
+﻿using System;
 using Xwt;
 using Application = Xwt.Application;
 using MenuItem = Xwt.MenuItem;
@@ -12,17 +7,21 @@ using Samples;
 
 namespace PasswordManager.UI
 {
+
+    /// <summary>
+    /// For designing and controlling the visual interface
+    /// used to operate the Password Manager.
+    /// </summary>
+
     class GUIManager
     {
-        private Menu mainMenu_;
-        private Window mainWindow_;
 
         public GUIManager()
         {
             Application.Initialize(ToolkitType.Gtk);
 
             // Initialize main window
-            mainWindow_ = new Window()
+            MainWindow = new Window()
             {
                 Title = "Password Manager",
                 Width = 500,
@@ -30,11 +29,17 @@ namespace PasswordManager.UI
                 Resizable = false
             };
 
-            mainMenu_ = new Menu();
+            LoggedIn = false;
+
+            MainMenu = new Menu();
 
             // Creates the 'File' menu item
             MenuItem fileMenu = new MenuItem("File");
             fileMenu.SubMenu = new Menu();
+
+            // Adds the 'Home' command to 'File' menu
+            MenuItem homeCommand = new MenuItem(new Command("Home"));
+            fileMenu.SubMenu.Items.Add(homeCommand);
 
             // Adds the 'Settings' item to 'File' menu
             MenuItem settingsSubMenu = new MenuItem("Settings");
@@ -43,7 +48,9 @@ namespace PasswordManager.UI
             // Adds the 'Logout' command to 'File' menu
             MenuItem logoutCommand = new MenuItem(new Command("Logout"));
             fileMenu.SubMenu.Items.Add(logoutCommand);
-            mainMenu_.Items.Add((fileMenu));
+
+            // Finalize fileMenu
+            MainMenu.Items.Add((fileMenu));
 
             logoutCommand.Sensitive = false; // Change after logged in
 
@@ -54,26 +61,81 @@ namespace PasswordManager.UI
             // Adds 'About' item to 'Help' menu
             MenuItem aboutSubMenu = new MenuItem("About");
             helpMenu.SubMenu.Items.Add(aboutSubMenu);
-            mainMenu_.Items.Add(helpMenu);
+
+            // Finalize helpMenu
+            MainMenu.Items.Add(helpMenu);
 
             // Make login page
-            LoginPage loginPage = new LoginPage();
-
-            // Make about page
-            AboutPage aboutPage = new AboutPage(mainWindow_);
+            LoginPage = new LoginPage(this);
 
             // Set buttons for window switching
-            loginPage.LoginButton().Clicked += delegate
+            aboutSubMenu.Clicked += delegate
             {
-                mainWindow_.Content = aboutPage;
+                // Make about page
+                AboutPage aboutPage = new AboutPage(this);
+
+                MainWindow.Content = aboutPage;
+            };
+            homeCommand.Clicked += delegate
+            {
+                // If not logged in, 'Home' sends to login page
+                if (!LoggedIn)
+                {
+                    // Make login page
+                    LoginPage = new LoginPage(this);
+                    
+                    MainWindow.Content = LoginPage;
+                }
+                else // Else send to home page
+                {
+                    // Make about page
+                    AboutPage aboutPage = new AboutPage(this); // TEMPORARY
+
+                    MainWindow.Content = aboutPage;
+                }
+            };
+            logoutCommand.Clicked += delegate
+            {
+                LoggedIn = false;
+
+                // Make login page
+                LoginPage = new LoginPage(this);
+
+                MainWindow.Content = LoginPage;
             };
 
-            mainWindow_.Content = loginPage; // First page
+            MainWindow.Content = LoginPage; // First page
 
-            mainWindow_.MainMenu = mainMenu_;
+            MainWindow.MainMenu = MainMenu;
         }
 
-        public Menu MainMenu() { return this.mainMenu_; }
-        public Window MainWindow() { return this.mainWindow_; }
+        /// <summary>
+        /// Toggles the logout button, depending on the current state of the user
+        /// </summary>
+        public void SetLogoutButton()
+        {
+            foreach (MenuItem i in MainMenu.Items)
+            {
+                if (i.Label == "File")
+                {
+                    foreach (MenuItem j in i.SubMenu.Items)
+                    {
+                        if (j.Label == "Logout")
+                            j.Sensitive = LoggedIn; // Set to be the state of the user (logged in/logged out)
+                    }
+                }
+            }
+        }
+
+        /* Getters and setters */
+
+        public Menu MainMenu { get; }
+        public Window MainWindow { get; }
+
+        // Pages
+        public LoginPage LoginPage { get; set; }
+        public AboutPage AboutPage { get; set; }
+
+        public Boolean LoggedIn { get; set; }
     }
 }

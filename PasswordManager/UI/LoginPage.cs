@@ -1,7 +1,5 @@
 ﻿/**
- * The widget for the login page, with two simple
- * text boxes; one textbox for the username,
- * and the other for the password.
+ * 
  */
 
 using System;
@@ -9,11 +7,27 @@ using Xwt;
 
 namespace PasswordManager.UI
 {
+
+    /// <summary>
+    /// The widget for the login page, with two simple
+    /// text boxes; one textbox for the username,
+    /// and the other for the password.
+    /// </summary>
+
     class LoginPage: Canvas
     {
         private Button loginButton_;
 
-        public LoginPage()
+        /// <summary>
+        /// Login page
+        /// </summary>
+        /// <param name="mainMenu">
+        /// The main menu item
+        /// </param>
+        /// <param name="loggedIn">
+        /// State of user, for toggling 'Log' buttons
+        /// </param>
+        public LoginPage(GUIManager gm)
         {
             // Welcome title
             Label welcomeHeader = new Label("Welcome to Password Manager!")
@@ -50,10 +64,19 @@ namespace PasswordManager.UI
             // Login button
             loginButton_ = new Button("Login");
             this.AddChild(loginButton_, new Rectangle(200, 300, 50, 30));
+
+            loginButton_.Clicked += delegate
+            {
+                gm.LoggedIn = true;
+
+                // Make about page
+                AboutPage aboutPage = new AboutPage(gm); // TEMPORARY
+
+                // In here, check for username/password validation and log in
+                gm.MainWindow.Content = aboutPage;
+            };
+
+            gm.SetLogoutButton();
         }
-
-        /* Getters */
-
-        public Button LoginButton() { return this.loginButton_; }
     }
 }
