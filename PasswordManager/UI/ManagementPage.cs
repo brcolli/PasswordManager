@@ -58,6 +58,30 @@ namespace PasswordManager.UI
             Button updateButton = new Button("Add/Update");
             this.AddChild(updateButton, new Rectangle(5, 160, 80, 30));
 
+            updateButton.Clicked += delegate
+            {
+
+                // Get text
+                string key = updateKeyEntry.Text;
+                string password = passwordEntry.Password;
+
+                if (!GUIManager.IsValid(key) || !GUIManager.IsValid(password))
+                {
+                    // Not a valid user or password
+                    MessageDialog.ShowError("Please do not enter empty values, whitespace, or '\\' in the entries!");
+                    return;
+                }
+
+                // Convert to SHA256
+                string keyHash = GUIManager.GetHash(key);
+                string passwordHash = GUIManager.GetHash(password);
+
+                // Temporary, plz delete
+                MessageDialog.ShowMessage("Key hash: " + keyHash + "\n" + "Password hash: " + passwordHash);
+
+                // TODO Look in database for key; if found, update, else add
+            };
+
             /* Section for getting or deleting an entry */
 
             Label getOrDeleteLabel = new Label("Get/Delete")
@@ -98,6 +122,49 @@ namespace PasswordManager.UI
             // Delete button
             Button deleteButton = new Button("Delete");
             this.AddChild(deleteButton, new Rectangle(55, 385, 50, 30));
+
+            getButton.Clicked += delegate
+            {
+
+                string key = getOrDeleteKeyEntry.Text;
+
+                if (!GUIManager.IsValid(key))
+                {
+                    // Not a valid user or password
+                    MessageDialog.ShowError("Please do not enter empty values, whitespace, or '\\' in the entry!");
+                    return;
+                }
+
+                // Convert to SHA256
+                string keyHash = GUIManager.GetHash(key);
+
+                // Temporary, plz delete
+                MessageDialog.ShowMessage("Key hash: " + keyHash);
+
+                // TODO Find password associated with the key and show
+                getOrDeleteResult.Text = "MyPassword";
+            };
+            deleteButton.Clicked += delegate
+            {
+
+                string key = getOrDeleteKeyEntry.Text;
+
+                if (!GUIManager.IsValid(key))
+                {
+                    // Not a valid user or password
+                    MessageDialog.ShowError("Please do not enter empty values, whitespace, or '\\' in the entry!");
+                    return;
+                }
+
+                // Convert to SHA256
+                string keyHash = GUIManager.GetHash(key);
+
+                // Temporary, plz delete
+                MessageDialog.ShowMessage("Key hash: " + keyHash);
+
+                // TODO Find data entry associated with the key and delete
+                getOrDeleteResult.Text = "Entry associated with " + key + " deleted!";
+            };
 
             gm.SetLogoutButton();
         }

@@ -127,6 +127,39 @@ namespace PasswordManager.UI
             }
         }
 
+        /// <summary>
+        /// A string is considered valid if it isn't empty, does not contain
+        /// the escape character, and does not contain any whitespace
+        /// </summary>
+        /// <param name="entry">
+        /// The string to check validity
+        /// </param>
+        /// <returns>
+        /// True if valid, else false
+        /// </returns>
+        public static Boolean IsValid(string entry)
+        {
+            if (entry.Contains("\\") || entry.Contains(" ") || entry == "")
+                return false;
+            return true;
+        }
+
+        /// <summary>
+        /// Gets the SHA256 hash value from a string
+        /// </summary>
+        /// <param name="entry">
+        /// String to hash
+        /// </param>
+        /// <returns>
+        /// Hashed value of entry
+        /// </returns>
+        public static string GetHash(string entry)
+        {
+            byte[] entryData = System.Text.Encoding.ASCII.GetBytes(entry);
+            entryData = new System.Security.Cryptography.SHA256Managed().ComputeHash(entryData);
+            return System.Text.Encoding.ASCII.GetString(entryData);
+        }
+
         /* Getters and setters */
 
         public Menu MainMenu { get; }

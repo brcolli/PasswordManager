@@ -1,8 +1,4 @@
-﻿/**
- * 
- */
-
-using System;
+﻿using System;
 using Xwt;
 
 namespace PasswordManager.UI
@@ -34,7 +30,7 @@ namespace PasswordManager.UI
 
             // Welcome message
             Label welcomeMessage =
-                new Label("Your quick, simple local password storage device. \nPlease login below to begin.")
+                new Label("Your quick, simple local password storage device. \nPlease login or create a user below to begin.")
                 {
                     Font = this.Font.WithSize(10),
                     TextAlignment = Alignment.Center
@@ -61,9 +57,63 @@ namespace PasswordManager.UI
             Button loginButton = new Button("Login");
             this.AddChild(loginButton, new Rectangle(200, 300, 50, 30));
 
+            // Create user button
+            Button createUserButton = new Button("Create User");
+            this.AddChild(createUserButton, new Rectangle(250, 300, 80, 30));
+
             loginButton.Clicked += delegate
             {
                 gm.LoggedIn = true;
+
+                // Get entered text
+                string user = userEntry.Text;
+                string password = passwordEntry.Password;
+
+                if (!GUIManager.IsValid(user) || !GUIManager.IsValid(password))
+                {
+                    // Not a valid user or password
+                    MessageDialog.ShowError("Please do not enter empty values, whitespace, or '\\' in the entries!");
+                    return;
+                }
+
+                // Convert to SHA256
+                string userHash = GUIManager.GetHash(user);
+                string passwordHash = GUIManager.GetHash(password);
+
+                // Temporary, plz delete
+                MessageDialog.ShowMessage("User hash: " + userHash + "\n" + "Password hash: " + passwordHash);
+
+                // TODO Find user in database, check password
+
+                // Make management page
+                ManagementPage managementPage = new ManagementPage(gm);
+
+                // In here, check for username/password validation and log in
+                gm.MainWindow.Content = managementPage;
+            };
+            createUserButton.Clicked += delegate
+            {
+                gm.LoggedIn = true;
+
+                // Get entered text
+                string user = userEntry.Text;
+                string password = passwordEntry.Password;
+
+                if (!GUIManager.IsValid(user) || !GUIManager.IsValid(password))
+                {
+                    // Not a valid user or password
+                    MessageDialog.ShowError("Please do not enter empty values, whitespace, or '\\' in the entries!");
+                    return;
+                }
+
+                // Convert to SHA256
+                string userHash = GUIManager.GetHash(user);
+                string passwordHash = GUIManager.GetHash(password);
+
+                // Temporary, plz delete
+                MessageDialog.ShowMessage("User hash: " + userHash + "\n" + "Password hash: " + passwordHash);
+
+                // TODO Add user/password to database
 
                 // Make management page
                 ManagementPage managementPage = new ManagementPage(gm);
