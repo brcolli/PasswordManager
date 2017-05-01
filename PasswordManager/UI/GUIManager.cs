@@ -41,9 +41,9 @@ namespace PasswordManager.UI
             MenuItem homeCommand = new MenuItem(new Command("Home"));
             fileMenu.SubMenu.Items.Add(homeCommand);
 
-            // Adds the 'Settings' item to 'File' menu
-            MenuItem settingsSubMenu = new MenuItem("Settings");
-            fileMenu.SubMenu.Items.Add(settingsSubMenu);
+            // Adds the 'Settings' command to 'File' menu
+            MenuItem settingsCommand = new MenuItem(new Command("Settings"));
+            fileMenu.SubMenu.Items.Add(settingsCommand);
 
             // Adds the 'Logout' command to 'File' menu
             MenuItem logoutCommand = new MenuItem(new Command("Logout"));
@@ -102,6 +102,12 @@ namespace PasswordManager.UI
                 LoginPage = new LoginPage(this);
 
                 MainWindow.Content = LoginPage;
+            };
+            settingsCommand.Clicked += delegate
+            {
+                SettingsPage settingsPage = new SettingsPage(this);
+
+                MainWindow.Content = settingsPage;
             };
 
             MainWindow.Content = LoginPage; // First page

@@ -72,12 +72,8 @@ namespace PasswordManager.UI
                     return;
                 }
 
-                // Convert to SHA256
-                string keyHash = GUIManager.GetHash(key);
-                string passwordHash = GUIManager.GetHash(password);
-
                 // Temporary, plz delete
-                MessageDialog.ShowMessage("Key hash: " + keyHash + "\n" + "Password hash: " + passwordHash);
+                MessageDialog.ShowMessage("Key : " + key + "\n" + "Password : " + password);
 
                 // TODO Look in database for key; if found, update, else add
             };
@@ -135,11 +131,8 @@ namespace PasswordManager.UI
                     return;
                 }
 
-                // Convert to SHA256
-                string keyHash = GUIManager.GetHash(key);
-
                 // Temporary, plz delete
-                MessageDialog.ShowMessage("Key hash: " + keyHash);
+                MessageDialog.ShowMessage("Key : " + key);
 
                 // TODO Find password associated with the key and show
                 getOrDeleteResult.Text = "MyPassword";
@@ -156,11 +149,8 @@ namespace PasswordManager.UI
                     return;
                 }
 
-                // Convert to SHA256
-                string keyHash = GUIManager.GetHash(key);
-
                 // Temporary, plz delete
-                MessageDialog.ShowMessage("Key hash: " + keyHash);
+                MessageDialog.ShowMessage("Key : " + key);
 
                 // TODO Find data entry associated with the key and delete
                 getOrDeleteResult.Text = "Entry associated with " + key + " deleted!";
