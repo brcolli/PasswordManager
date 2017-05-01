@@ -16,7 +16,6 @@ namespace PasswordManager.UI
 
     class LoginPage: Canvas
     {
-        private Button loginButton_;
 
         /// <summary>
         /// Login page
@@ -59,10 +58,10 @@ namespace PasswordManager.UI
             this.AddChild(passwordEntry, new Rectangle(200, 230, 100, 100));
 
             // Login button
-            loginButton_ = new Button("Login");
-            this.AddChild(loginButton_, new Rectangle(200, 300, 50, 30));
+            Button loginButton = new Button("Login");
+            this.AddChild(loginButton, new Rectangle(200, 300, 50, 30));
 
-            loginButton_.Clicked += delegate
+            loginButton.Clicked += delegate
             {
                 gm.LoggedIn = true;
 

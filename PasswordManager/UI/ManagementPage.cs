@@ -21,7 +21,8 @@ namespace PasswordManager.UI
         public ManagementPage(GUIManager gm)
         {
 
-            // Section for adding and updating an entry
+            /* Section for adding and updating an entry */
+
             Label updateLabel = new Label("Add/Update")
             {
                 Font = this.Font.WithSize(20),
@@ -46,7 +47,19 @@ namespace PasswordManager.UI
             this.AddChild(updateLabel, new Rectangle(40, 0, 400, 50));
             this.AddChild(updateMessage, new Rectangle(300, 70, 180, 140));
 
-            // Section for getting or deleting an entry
+            // Text entries for Add/Update
+            TextEntry updateKeyEntry = new TextEntry { PlaceholderText = "Enter key..." };
+            PasswordEntry passwordEntry = new PasswordEntry { PlaceholderText = "Enter password..." };
+
+            this.AddChild(updateKeyEntry, new Rectangle(5, 60, 280, 100));
+            this.AddChild(passwordEntry, new Rectangle(5, 90, 280, 100));
+
+            // Update button
+            Button updateButton = new Button("Add/Update");
+            this.AddChild(updateButton, new Rectangle(5, 160, 80, 30));
+
+            /* Section for getting or deleting an entry */
+
             Label getOrDeleteLabel = new Label("Get/Delete")
             {
                 Font = this.Font.WithSize(20),
@@ -69,6 +82,22 @@ namespace PasswordManager.UI
 
             this.AddChild(getOrDeleteLabel, new Rectangle(40, 225, 400, 50));
             this.AddChild(getOrDeleteMessage, new Rectangle(300, 295, 180 ,140));
+
+            // Text entries for Get/Delete            
+            TextEntry getOrDeleteKeyEntry = new TextEntry { PlaceholderText = "Enter key..." };
+            TextEntry getOrDeleteResult = new TextEntry { PlaceholderText = "Waiting for command..." };
+            getOrDeleteResult.Sensitive = false;
+
+            this.AddChild(getOrDeleteKeyEntry, new Rectangle(5, 285, 280, 100));
+            this.AddChild(getOrDeleteResult, new Rectangle(5, 315, 280, 100));
+
+            // Get button
+            Button getButton = new Button("Get");
+            this.AddChild(getButton, new Rectangle(5, 385, 50, 30));
+
+            // Delete button
+            Button deleteButton = new Button("Delete");
+            this.AddChild(deleteButton, new Rectangle(55, 385, 50, 30));
 
             gm.SetLogoutButton();
         }
