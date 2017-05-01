@@ -23,8 +23,25 @@ namespace PasswordManager.UI
         /// </param>
         public AboutPage(GUIManager gm)
         {
-            Label aboutLabel = new Label("About");
-            this.AddChild(aboutLabel, new Rectangle(0, 0, 100, 100));
+            Label aboutLabel = new Label("About")
+            {
+                Font = this.Font.WithSize(20),
+                TextAlignment = Alignment.Center
+            };
+
+            // About message
+            Label aboutMessage =
+                new Label("This Password Manager was designed for\n" +
+                          "Spring 2017 CS 460's Final Project by\n" +
+                          "Benjamin Collins (brcolli2) and Bradley Anderson (bsndrsn2).")
+                {
+                    Font = this.Font.WithSize(10),
+                    TextAlignment = Alignment.Center
+                };
+
+            // Add text
+            this.AddChild(aboutLabel, new Rectangle(40, 0, 400, 100));
+            this.AddChild(aboutMessage, new Rectangle(50, 50, 400, 100));
 
             gm.SetLogoutButton();
         }
