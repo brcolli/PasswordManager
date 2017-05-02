@@ -54,7 +54,7 @@ namespace PasswordManager.Backend
             byte[] k2 = hash.Take(HashByteSize/2).ToArray();
             byte[] k3 = hash.Skip(HashByteSize/2).Take(HashByteSize/2).ToArray();
 
-            byte[] encrypted = AESEncrypt(k1, k2, iv);
+            byte[] encrypted = AES.AESEncrypt(k1, k2, iv, IVByteSize);
 
             return Pbkdf2Iterations + ":" +
                    Convert.ToBase64String(encrypted) + ":" +
@@ -99,100 +99,7 @@ namespace PasswordManager.Backend
                 return null;
             }
 
-            return AESDecrypt(k3Generated, k2, iv);
-        }
-
-        /// <summary>
-        /// Encrypt the given data using the given key and iv
-        /// </summary>
-        /// <param name="data">
-        /// Data to encrypt using AES
-        /// </param>
-        /// <param name="key">
-        /// Key to encrypt data with
-        /// </param>
-        /// <param name="iv">
-        /// IV to encrypt data with
-        /// </param>
-        /// <returns>
-        /// Encrypted data
-        /// </returns>
-        private static byte[] AESEncrypt(byte[] data, byte[] key, byte[] iv)
-        {
-            // Configure AES
-            AesCryptoServiceProvider crypto = new AesCryptoServiceProvider();
-            crypto.KeySize = IVByteSize * 8;
-            crypto.Padding = PaddingMode.None;
-            crypto.Key = key;
-            crypto.IV = iv;
-
-            // Create encryptor
-            ICryptoTransform encryptor = crypto.CreateEncryptor();
-
-            byte[] encrypted;
-
-            // Stream for encrypted data
-            using (MemoryStream memoryStream = new MemoryStream())
-            {
-                // Stream for encrypting data
-                using (CryptoStream encryptStream = new CryptoStream(memoryStream, encryptor, CryptoStreamMode.Write))
-                {
-//                    using (StreamWriter streamWriter = new StreamWriter(encryptStream))
-//                    {
-                        // Write encrypted data to stream
-                        encryptStream.Write(data, 0, IVByteSize);
-//                    }
-                    encrypted = memoryStream.ToArray();
-                }
-            }
-
-            return encrypted;
-        }
-
-        /// <summary>
-        /// Decrypt given data using given key and iv
-        /// </summary>
-        /// <param name="data">
-        /// Data to decrypt
-        /// </param>
-        /// <param name="key">
-        /// Key to decrypt with
-        /// </param>
-        /// <param name="iv">
-        /// IV to decrypt with
-        /// </param>
-        /// <returns>
-        /// Decrypted data
-        /// </returns>
-        private static byte[] AESDecrypt(byte[] data, byte[] key, byte[] iv)
-        {
-            // Configure AES
-            AesCryptoServiceProvider crypto = new AesCryptoServiceProvider();
-            crypto.KeySize = IVByteSize * 8;
-            crypto.Padding = PaddingMode.None;
-            crypto.Key = key;
-            crypto.IV = iv;
-
-            // Create decryptor
-            ICryptoTransform decryptor = crypto.CreateDecryptor();
-
-            byte[] decrypted = new byte[IVByteSize];
-
-            // Stream for encrypted data
-            using (MemoryStream memoryStream = new MemoryStream(data))
-            {
-                // Stream for encrypting data
-                using (CryptoStream decryptStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Read))
-                {
-//                    using (StreamReader streamReader = new StreamReader(decryptStream, Encoding.UTF8))
-//                    {
-                        // Read decrypted data from stream
-                    decryptStream.Read(decrypted, 0, IVByteSize); //streamReader.ReadToEnd();
-                    //                    }
-                }
-            }
-
-            return decrypted;  //Encoding.UTF8.GetBytes(decrypted);
+            return AES.AESDecrypt(k3Generated, k2, iv, IVByteSize);
         }
 
         /// <summary>
