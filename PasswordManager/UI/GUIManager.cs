@@ -8,6 +8,19 @@ using Samples;
 
 namespace PasswordManager.UI
 {
+    class GUIWindow : Window
+    {
+        public GUIWindow()
+        {
+            this.CloseRequested += CloseProperly;
+        }
+
+        public void CloseProperly(object sender, EventArgs e)
+        {
+            DBManager.Instance.CloseDB();
+            Application.Exit();
+        }
+    }
 
     /// <summary>
     /// For designing and controlling the visual interface
@@ -18,10 +31,12 @@ namespace PasswordManager.UI
     {
         public GUIManager()
         {
+//            AppDomain.CurrentDomain.ProcessExit += DBManager.OnExit;
+
             Application.Initialize(ToolkitType.Gtk);
 
             // Initialize main window
-            MainWindow = new Window()
+            MainWindow = new GUIWindow()
             {
                 Title = "Password Manager",
                 Width = 500,
@@ -115,6 +130,11 @@ namespace PasswordManager.UI
             MainWindow.Content = LoginPage; // First page
 
             MainWindow.MainMenu = MainMenu;
+        }
+
+        ~GUIManager()
+        {
+            DBManager.Instance.CloseDB();
         }
 
         /// <summary>

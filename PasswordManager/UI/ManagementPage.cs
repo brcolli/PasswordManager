@@ -76,6 +76,10 @@ namespace PasswordManager.UI
                     return;
                 }
 
+                // Clear fields
+                updateKeyEntry.Text = "";
+                passwordEntry.Password = "";
+
                 // Check if database contains account
                 if (DBManager.Instance.ContainsAccount(key))
                 {

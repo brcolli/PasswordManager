@@ -20,8 +20,6 @@ namespace PasswordManager.UI
             // Run
             manager.MainWindow.Show();
             Application.Run();
-            // Ensure database closes
-            DBManager.Instance.CloseDB();
             manager.MainWindow.Dispose();
         }
     }

@@ -48,6 +48,12 @@ namespace PasswordManager.Backend
             Directory.CreateDirectory(_path);
         }
 
+        public static void OnExit(object sender, EventArgs e)
+        {
+            Instance.CloseDB();
+        }
+
+
         /// <summary>
         /// Check if the database with the given name exists
         /// </summary>
@@ -232,6 +238,68 @@ namespace PasswordManager.Backend
             File.Delete(working);
 
             return true;
+        }
+
+        /// <summary>
+        /// Check if the given password is correct
+        /// </summary>
+        /// <param name="password">
+        /// Candidate password for database
+        /// </param>
+        /// <returns>
+        /// 1 if correct, 0 if password incorrect, and 2 if no hash file found
+        /// </returns>
+        public int ValidatePassword(string password)
+        {
+            if (!File.Exists(_hashPath))
+            {
+                // No hash file found, database can't be decrypted
+                return 2;
+            }
+
+            // Get decrypted key
+            string hashed = File.ReadAllText(_hashPath, _hashEncoding);
+            byte[] key = PasswordHash.GetDecryptedKey(password, hashed);
+            // Ensure password is valid
+            if (key == null)
+            {
+                // Password incorrect
+                return 0;
+            }
+            return 1;
+        }
+
+        /// <summary>
+        /// Change the database password to the given password
+        /// </summary>
+        /// <param name="password">
+        /// Original password for database
+        /// </param>
+        /// <param name="newPassword">
+        /// Password to replace original password with
+        /// </param>
+        /// <returns>
+        /// 1 if successful, 0 if password incorrect, and 2 if no database loaded
+        /// </returns>
+        public int ChangePassword(string password, string newPassword)
+        {
+            if (_db == null) return 2;
+
+            // Get decrypted key
+            string hashed = File.ReadAllText(_hashPath, _hashEncoding);
+            byte[] key = PasswordHash.GetDecryptedKey(password, hashed);
+
+            // Verify password is correct
+            if (key == null) return 0;
+
+            // Use key to encrypt password
+            string newHashed = PasswordHash.HashPassword(newPassword, key);
+            File.WriteAllText(_hashPath, newHashed, _hashEncoding);
+
+            // Store new password
+            _password = newPassword;
+
+            return 1;
         }
 
         private void CreateAccountsTable()

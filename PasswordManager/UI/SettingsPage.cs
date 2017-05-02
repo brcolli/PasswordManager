@@ -1,4 +1,5 @@
 ﻿using System;
+using PasswordManager.Backend;
 using Xwt;
 
 namespace PasswordManager.UI
@@ -8,7 +9,7 @@ namespace PasswordManager.UI
     /// For now, simply controls the master password
     /// </summary>
 
-    class SettingsPage: Canvas
+    class SettingsPage : Table
     {
 
         private Label masterPasswordLabel, oldPasswordLabel, newPasswordLabel;
@@ -35,13 +36,13 @@ namespace PasswordManager.UI
                     Wrap = WrapMode.Word
                 };
 
-            this.AddChild(settingsTitle, new Rectangle(40, 0, 400, 100));
-            this.AddChild(settingsMessage, new Rectangle(90, 50, 300, 100));
+            this.Add(settingsTitle, 0, 0, 2, 2, ExpandHorizontal=true, ExpandVertical=false);
+            this.Add(settingsMessage, 0, 2, 2, 2, ExpandHorizontal=true, ExpandVertical=false);
 
             // Text for entries
             masterPasswordLabel = new Label("Master Password:");
 
-            this.AddChild(masterPasswordLabel, new Rectangle(5, 225, 100, 50));
+            this.Add(masterPasswordLabel, 0, 4, 1, 2, ExpandHorizontal=true, ExpandVertical=false);
 
             if (gm.LoggedIn)
                 masterPasswordEntry = new PasswordEntry {PlaceholderText = "Enter master password..."};
@@ -51,22 +52,24 @@ namespace PasswordManager.UI
                 masterPasswordEntry.Sensitive = false;
             }
             
-            this.AddChild(masterPasswordEntry, new Rectangle(105, 225, 280, 50));
+            this.Add(masterPasswordEntry, 0, 5, 1, 2, ExpandHorizontal=true, ExpandVertical=false);
 
             // Update master password button
             updatePasswordButton = new Button("Update Password");
-            this.AddChild(updatePasswordButton, new Rectangle(105, 265, 50, 30));
+            this.Add(updatePasswordButton, 0, 6, 1, 2, ExpandHorizontal=true, ExpandVertical=false);
 
             if (!gm.LoggedIn)
                 updatePasswordButton.Sensitive = false;
 
             confirmUpdateButton = new Button("Update Password");
 
+            string masterPassword = "";
+
             updatePasswordButton.Clicked += delegate
             {
 
                 // Get entered text
-                string masterPassword = masterPasswordEntry.Password;
+                masterPassword = masterPasswordEntry.Password;
 
                 if (!GUIManager.IsValid(masterPassword))
                 {
@@ -75,33 +78,38 @@ namespace PasswordManager.UI
                     return;
                 }
 
+                switch (DBManager.Instance.ValidatePassword(masterPassword))
+                {
+                    case 0:
+                        MessageDialog.ShowError("Incorrect master password.");
+                        return;
+                    case 2:
+                        MessageDialog.ShowError("No hash file found for database, cannot verify password.");
+                        return;
+                }
+
                 // Remove old label, add new labels
-                this.RemoveChild(masterPasswordLabel);
-                oldPasswordLabel = new Label("Old Password:");
+                this.Remove(masterPasswordLabel);
                 newPasswordLabel = new Label("New Password:");
 
-                this.AddChild(oldPasswordLabel, new Rectangle(5, 225, 100, 50));
-                this.AddChild(newPasswordLabel, new Rectangle(5, 255, 100, 50));
+                this.Add(newPasswordLabel, 0, 8, 1, 2, ExpandHorizontal=true, ExpandVertical=false);
 
                 // Delete old entry, add new entries
-                this.RemoveChild(masterPasswordEntry);
-                oldPasswordEntry = new PasswordEntry { PlaceholderText = "Please enter your old password..."};
+                this.Remove(masterPasswordEntry);
                 newPasswordEntry = new PasswordEntry { PlaceholderText = "Please enter the new password..." };
                 confirmNewPasswordEntry = new PasswordEntry { PlaceholderText = "Please re-enter the new password..." };
 
-                // Populate the first new password entry with the entry above (maybe don't? idfk)
-                newPasswordEntry.Password = masterPassword;
+                newPasswordEntry.Password = "";
 
-                this.AddChild(oldPasswordEntry, new Rectangle(105, 225, 280, 50));
-                this.AddChild(newPasswordEntry, new Rectangle(105, 255, 280, 50));
-                this.AddChild(confirmNewPasswordEntry, new Rectangle(105, 285, 280, 50));
+                this.Add(newPasswordEntry, 0, 10, 1, 2, ExpandHorizontal=true, ExpandVertical=false);
+                this.Add(confirmNewPasswordEntry, 0, 11, 1, 2, ExpandHorizontal=true, ExpandVertical=false);
 
                 // Delete old button and add new button
-                this.RemoveChild(updatePasswordButton);
-                this.AddChild(confirmUpdateButton, new Rectangle(105, 325, 50, 30));
+                this.Remove(updatePasswordButton);
+                this.Add(confirmUpdateButton, 0, 12, 1, 2, ExpandHorizontal=true, ExpandVertical=false);
 
                 cancelButton = new Button("Cancel");
-                this.AddChild(cancelButton, new Rectangle(155, 325, 50, 30));
+                this.Add(cancelButton, 0, 13, 1, 2, ExpandHorizontal=true, ExpandVertical=false);
 
                 
                 cancelButton.Clicked += delegate
@@ -112,19 +120,9 @@ namespace PasswordManager.UI
             };
             confirmUpdateButton.Clicked += delegate
             {
-
                 // Get text
-                string oldPassword = oldPasswordEntry.Password;
                 string newPassword = newPasswordEntry.Password;
                 string confirmNewPassword = confirmNewPasswordEntry.Password;
-
-                if (!GUIManager.IsValid(oldPassword) || !GUIManager.IsValid(newPassword) ||
-                    !GUIManager.IsValid(confirmNewPassword))
-                {
-                    // Not a valid password
-                    MessageDialog.ShowError("Please do not enter empty values, whitespace, or '\\' in the entry!");
-                    return;
-                }
 
                 if (newPassword != confirmNewPassword)
                 {
@@ -133,17 +131,16 @@ namespace PasswordManager.UI
                     return;
                 }
 
-                if (oldPassword == newPassword)
+                // Update master password
+                switch (DBManager.Instance.ChangePassword(masterPassword, newPassword))
                 {
-                    // Trying to update with same password
-                    MessageDialog.ShowError("Please update with a different password from the current one!");
-                    return;
+                    case 0:
+                        MessageDialog.ShowError("Incorrect master password.");
+                        return;
+                    case 2:
+                        MessageDialog.ShowError("No database loaded.");
+                        return;
                 }
-
-                // plz remove
-                MessageDialog.ShowMessage("New password is: " + newPassword);
-
-                // TODO Find old master password in database, compare to entered password, then update if passed
 
                 /* Convert back to old layout */
                 ConvertToOldLayout();
@@ -159,24 +156,24 @@ namespace PasswordManager.UI
         {
 
             // Delete labels and replace
-            this.RemoveChild(oldPasswordLabel);
-            this.RemoveChild(newPasswordLabel);
+            this.Remove(oldPasswordLabel);
+            this.Remove(newPasswordLabel);
 
-            this.AddChild(masterPasswordLabel, new Rectangle(5, 225, 100, 50));
+            this.Add(masterPasswordLabel, 0, 14, 1, 2, ExpandHorizontal=true, ExpandVertical=false);
 
             // Delete entries and replace
-            this.RemoveChild(oldPasswordEntry);
-            this.RemoveChild(newPasswordEntry);
-            this.RemoveChild(confirmNewPasswordEntry);
+            this.Remove(oldPasswordEntry);
+            this.Remove(newPasswordEntry);
+            this.Remove(confirmNewPasswordEntry);
 
             masterPasswordEntry.Password = "";
-            this.AddChild(masterPasswordEntry, new Rectangle(105, 225, 280, 50));
+            this.Add(masterPasswordEntry, 0, 15, 1, 2, ExpandHorizontal=true, ExpandVertical=false);
 
             // Delete button and replace
-            this.RemoveChild(confirmUpdateButton);
-            this.RemoveChild(cancelButton);
+            this.Remove(confirmUpdateButton);
+            this.Remove(cancelButton);
 
-            this.AddChild(updatePasswordButton, new Rectangle(105, 265, 50, 30));
+            this.Add(updatePasswordButton, 0, 16, 1, 2, ExpandHorizontal=true, ExpandVertical=false);
         }
     }
 }

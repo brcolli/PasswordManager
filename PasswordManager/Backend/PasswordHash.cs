@@ -31,15 +31,18 @@ namespace PasswordManager.Backend
         /// <param name="password">
         /// Password to encrypt key with
         /// </param>
+        /// <param name="k1Init">
+        /// Value to use for k1, if null will generate random
+        /// </param>
         /// <returns>
         /// String which can be fed into GetDecryptedKey along with password to get a
         /// decrypted key for doing AES encoding/decoding
         /// </returns>
-        public static string HashPassword(string password)
+        public static string HashPassword(string password, byte[] k1Init=null)
         {
             RNGCryptoServiceProvider cryptoProvider = new RNGCryptoServiceProvider();
             // Get IVByteSize * 8 bit key
-            byte[] k1 = new byte[IVByteSize];
+            byte[] k1 = k1Init ?? new byte[IVByteSize];
             cryptoProvider.GetBytes(k1);
             // Get IVByteSize * 8 bit IV
             byte[] iv = new byte[IVByteSize];
