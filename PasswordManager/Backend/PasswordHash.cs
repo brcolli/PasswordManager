@@ -176,7 +176,7 @@ namespace PasswordManager.Backend
             // Create decryptor
             ICryptoTransform decryptor = crypto.CreateDecryptor();
 
-            string decrypted;
+            byte[] decrypted = new byte[IVByteSize];
 
             // Stream for encrypted data
             using (MemoryStream memoryStream = new MemoryStream(data))
@@ -184,15 +184,15 @@ namespace PasswordManager.Backend
                 // Stream for encrypting data
                 using (CryptoStream decryptStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Read))
                 {
-                    using (StreamReader streamReader = new StreamReader(decryptStream, Encoding.UTF8))
-                    {
+//                    using (StreamReader streamReader = new StreamReader(decryptStream, Encoding.UTF8))
+//                    {
                         // Read decrypted data from stream
-                        decrypted = streamReader.ReadToEnd();
-                    }
+                    decryptStream.Read(decrypted, 0, IVByteSize); //streamReader.ReadToEnd();
+                    //                    }
                 }
             }
 
-            return Encoding.UTF8.GetBytes(decrypted);
+            return decrypted;  //Encoding.UTF8.GetBytes(decrypted);
         }
 
         /// <summary>

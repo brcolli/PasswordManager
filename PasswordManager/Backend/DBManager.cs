@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data.SQLite;
 using System.Diagnostics;
 using System.IO;
@@ -157,7 +158,16 @@ namespace PasswordManager.Backend
             DecryptFile(dbPath, _workingPath, key);
 
             // Open database connection
-            _db = new SQLiteConnection(_workingPath);
+            SQLiteConnectionStringBuilder stringBuilder = new SQLiteConnectionStringBuilder()
+            {
+                DataSource = _workingPath,
+            };
+            _db = new SQLiteConnection(stringBuilder.ConnectionString);
+            _db.Open();
+
+            // Ensure database is set up
+            CreateAccountsTable();
+
             // Return 3 if db null, 1 if ok
             return _db == null ? 3 : 1;
         }
@@ -205,6 +215,241 @@ namespace PasswordManager.Backend
         }
 
         /// <summary>
+        /// Execute given command on SQLite database
+        /// </summary>
+        /// <param name="commandString">
+        /// Command to pass to database
+        /// </param>
+        /// <param name="parameters">
+        /// List of variables to pass into @param#'s in commandString
+        /// </param>
+        /// <param name="command">
+        /// SQLiteCommand to execute non-query on
+        /// </param>
+        public void ExecuteNonQuery(string commandString, List<string> parameters=null, SQLiteCommand command=null)
+	    {
+            int index = 1;
+            if (command == null)
+            {
+                // Make a new command
+                using (command = _db.CreateCommand())
+                {
+                    if (parameters != null)
+                    {
+                        foreach (string param in parameters)
+                        {
+                            command.Parameters.Add(new SQLiteParameter("@param" + index, param));
+                            index++;
+                        }
+                    }
+                    command.CommandText = commandString;
+                    command.ExecuteNonQuery();
+                }
+            }
+            else
+            {
+                if (parameters != null)
+                {
+                    foreach (string param in parameters)
+                    {
+                        command.Parameters.Add(new SQLiteParameter("@param" + index, param));
+                        index++;
+                    }
+                }
+                command.CommandText = commandString;
+                command.ExecuteNonQuery();
+            }
+        }
+
+        /// <summary>
+        /// Execute given query on SQLite database and return results
+        /// </summary>
+        /// <param name="commandString">
+        /// Query to pass to database
+        /// </param>
+        /// <param name="parameters">
+        /// List of variables to pass into @param#'s in commandString
+        /// </param>
+        /// <returns>
+        /// SQLiteDataReader containing results from query
+        /// </returns>
+	    public SQLiteDataReader ExecuteReader(string commandString, List<string> parameters=null)
+	    {
+            using (SQLiteCommand command = new SQLiteCommand(commandString, _db))
+            {
+                int index = 1;
+                if (parameters != null)
+                {
+                    foreach (string param in parameters)
+                    {
+                        command.Parameters.Add(new SQLiteParameter("@param" + index, param));
+                        index++;
+                    }
+                }
+                command.CommandText = commandString;
+                return command.ExecuteReader();
+            }
+	    }
+
+        /// <summary>
+        /// Execute given query on SQLite database and return first column of first row
+        /// of query results
+        /// </summary>
+        /// <param name="commandString">
+        /// Command to pass to database
+        /// </param>
+        /// <param name="parameters">
+        /// List of variables to pass into @param#'s in commandString
+        /// </param>
+        /// <returns>
+        /// First column of first row of query results
+        /// </returns>
+	    public object ExecuteScalar(string commandString, List<string> parameters=null)
+	    {
+            using (SQLiteCommand command = new SQLiteCommand(commandString, _db))
+            {
+                int index = 1;
+                if (parameters != null)
+                {
+                    foreach (string param in parameters)
+                    {
+                        command.Parameters.Add(new SQLiteParameter("@param" + index, param));
+                        index++;
+                    }
+                }
+                command.CommandText = commandString;
+                return command.ExecuteScalar();
+            }
+	    }
+
+        /// <summary>
+        /// Get the number of rows in the given table
+        /// </summary>
+        /// <param name="table">
+        /// Name of table to get the number of rows of
+        /// </param>
+        /// <returns>
+        /// Number of rows in the given table
+        /// </returns>
+	    public long GetRowCount(string table)
+	    {
+	        return (long)ExecuteScalar("SELECT Count(*) FROM " + table);
+	    }
+
+        public SQLiteDataReader GetLastRow(string table)
+        {
+            return ExecuteReader("SELECT * FROM " + table + " ORDER BY rowid DESC LIMIT 1");
+        }
+
+        /// <summary>
+        /// Check whether the given column of the reader is null
+        /// </summary>
+        /// <param name="reader">
+        /// Reader to check for null on
+        /// </param>
+        /// <param name="column">
+        /// Column to check for null on
+        /// </param>
+        /// <returns>
+        /// Whether the given column of the reader is null
+        /// </returns>
+        public bool IsColumnNull(SQLiteDataReader reader, string column)
+        {
+            return reader.IsDBNull(reader.GetOrdinal(column));
+        }
+
+        public bool ContainsAccount(string id)
+        {
+            List<string> parameters = new List<string> {id};
+            // Check if ID is in DB
+            // TODO: This is null for some reason
+            return (long)ExecuteScalar("SELECT Count(*) FROM Accounts WHERE ID = @param1", parameters) == 1;
+        }
+
+        public void AddAccount(string id, string password)
+        {
+            List<string> parameters = new List<string>
+            {
+                id,
+                password
+            };
+            ExecuteNonQuery("INSERT INTO Accounts (" +
+                            "ID, " +
+                            "Password) " +
+                            "VALUES (" + 
+                            "@param1, @param2" + 
+                            ")", parameters);
+        }
+
+        public void UpdateAccount(string id, string password)
+        {
+            List<string> parameters = new List<string>
+            {
+                id,
+                password
+            };
+            ExecuteNonQuery("UPDATE Accounts SET " +
+                            "Password = @param2 " +
+                            "WHERE ID = @param1", parameters);
+        }
+
+        /// <summary>
+        /// Get data for account with given ID from database
+        /// </summary>
+        /// <param name="id">
+        /// ID of account to lookup
+        /// </param>
+        /// <returns>
+        /// Dictionary of account data values
+        /// </returns>
+        public Dictionary<string, string> GetAccount(string id)
+        {
+            List<string> parameters = new List<string> {id};
+            Dictionary<string, string> data = new Dictionary<string, string>();
+            // Find account
+            using (SQLiteDataReader reader = ExecuteReader("SELECT * FROM Accounts WHERE ID = @param1", parameters))
+            {
+                if (reader.HasRows)
+                {
+                    while (reader.Read())
+                    {
+                        // Extract data
+                        data["Password"] = (string) reader["Password"];
+                    }
+                }
+                reader.Close();
+            }
+            return data;
+        }
+
+        /// <summary>
+        /// Remove the account with the given ID from the database
+        /// </summary>
+        /// <param name="id">
+        /// ID of account to remove
+        /// </param>
+        /// <returns>
+        /// Whether database contained account
+        /// </returns>
+        public bool RemoveAccount(string id)
+        {
+            // Check if database contains account
+            if (!ContainsAccount(id)) return false;
+            // Delete account
+            List<string> parameters = new List<string> {id};
+            ExecuteNonQuery("DELETE FROM Accounts WHERE ID = @param1", parameters);
+            return true;
+        }
+
+        private void CreateAccountsTable()
+        {
+            string cmd = "CREATE TABLE IF NOT EXISTS Accounts (`ID`	                  TEXT NOT NULL UNIQUE, \n" +
+                                                              "`Password`             TEXT NOT NULL, \n" +
+                                                              "PRIMARY KEY(ID))";
+            ExecuteNonQuery(cmd);
+        }
+
+        /// <summary>
         /// Encrypt the given input file using the given AES key to the given output file
         /// </summary>
         /// <param name="inputPath">
@@ -218,12 +463,13 @@ namespace PasswordManager.Backend
         /// </param>
         private static void EncryptFile(string inputPath, string outputPath, byte[] key)
         {
+            // TODO: Either this or decrypt is garbling the file. Doesn't happen with empty database
             // Configure AES
             AesCryptoServiceProvider crypto = new AesCryptoServiceProvider();
             crypto.KeySize = 128;
             crypto.Padding = PaddingMode.None;
             crypto.Key = key.Take(16).ToArray();
-            crypto.IV = key.Skip(16).Take(16).ToArray();
+            crypto.IV = key.Skip(0).Take(16).ToArray();
 
             // Create encryptor
             ICryptoTransform encryptor = crypto.CreateEncryptor();
@@ -262,7 +508,7 @@ namespace PasswordManager.Backend
             crypto.KeySize = 128;
             crypto.Padding = PaddingMode.None;
             crypto.Key = key.Take(16).ToArray();
-            crypto.IV = key.Skip(16).Take(16).ToArray();
+            crypto.IV = key.Skip(0).Take(16).ToArray();
 
             // Decrypt the file
             ICryptoTransform decryptor = crypto.CreateDecryptor();

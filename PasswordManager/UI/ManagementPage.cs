@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Data.SQLite;
+using PasswordManager.Backend;
 using Xwt;
 
 namespace PasswordManager.UI
@@ -9,7 +12,7 @@ namespace PasswordManager.UI
     /// editing the passwords, deleting, etc.
     /// </summary>
 
-    class ManagementPage: Canvas
+    class ManagementPage: Table
     {
 
         /// <summary>
@@ -25,7 +28,7 @@ namespace PasswordManager.UI
 
             Label updateLabel = new Label("Add/Update")
             {
-                Font = this.Font.WithSize(20),
+                Font = this.Font.WithSize(16),
                 TextAlignment = Alignment.Center,
                 Wrap = WrapMode.Word
             };
@@ -41,27 +44,27 @@ namespace PasswordManager.UI
                           "then be hashed and stored.")
                 {
                     Font = this.Font.WithSize(10),
-                    TextAlignment = Alignment.Start
+                    TextAlignment = Alignment.Start,
+                    Wrap = WrapMode.Word
                 };
 
             // Add text
-            this.AddChild(updateLabel, new Rectangle(40, 0, 400, 50));
-            this.AddChild(updateMessage, new Rectangle(300, 70, 180, 140));
+            this.Add(updateLabel, 0, 0, 2, 2, ExpandHorizontal=true, ExpandVertical=false);
+            this.Add(updateMessage, 0, 2, 2, 2, ExpandHorizontal=true, ExpandVertical=false);
 
             // Text entries for Add/Update
             TextEntry updateKeyEntry = new TextEntry { PlaceholderText = "Enter key..." };
             PasswordEntry passwordEntry = new PasswordEntry { PlaceholderText = "Enter password..." };
 
-            this.AddChild(updateKeyEntry, new Rectangle(5, 60, 280, 100));
-            this.AddChild(passwordEntry, new Rectangle(5, 90, 280, 100));
+            this.Add(updateKeyEntry, 0, 4, 1, 2, ExpandHorizontal=true, ExpandVertical=false);
+            this.Add(passwordEntry, 0, 5, 1, 2, ExpandHorizontal=true, ExpandVertical=false);
 
             // Update button
             Button updateButton = new Button("Add/Update");
-            this.AddChild(updateButton, new Rectangle(5, 160, 80, 30));
+            this.Add(updateButton, 0, 6, 1, 2, ExpandHorizontal=true, ExpandVertical=false);
 
             updateButton.Clicked += delegate
             {
-
                 // Get text
                 string key = updateKeyEntry.Text;
                 string password = passwordEntry.Password;
@@ -73,17 +76,24 @@ namespace PasswordManager.UI
                     return;
                 }
 
-                // Temporary, plz delete
-                MessageDialog.ShowMessage("Key : " + key + "\n" + "Password : " + password);
-
-                // TODO Look in database for key; if found, update, else add
+                // Check if database contains account
+                if (DBManager.Instance.ContainsAccount(key))
+                {
+                    // If it does, update the password
+                    DBManager.Instance.UpdateAccount(key, password);
+                }
+                else
+                {
+                    // Otherwise, add the account
+                    DBManager.Instance.AddAccount(key, password);
+                }
             };
 
             /* Section for getting or deleting an entry */
 
             Label getOrDeleteLabel = new Label("Get/Delete")
             {
-                Font = this.Font.WithSize(20),
+                Font = this.Font.WithSize(16),
                 TextAlignment = Alignment.Center,
                 Wrap = WrapMode.Word
             };
@@ -99,27 +109,28 @@ namespace PasswordManager.UI
                           "the value from the database.")
                 {
                     Font = this.Font.WithSize(10),
-                    TextAlignment = Alignment.Start
+                    TextAlignment = Alignment.Start,
+                    Wrap = WrapMode.Word
                 };
 
-            this.AddChild(getOrDeleteLabel, new Rectangle(40, 225, 400, 50));
-            this.AddChild(getOrDeleteMessage, new Rectangle(300, 295, 180 ,140));
+            this.Add(getOrDeleteLabel, 0, 8, 2, 2, ExpandHorizontal=true, ExpandVertical=false);
+            this.Add(getOrDeleteMessage, 0, 10, 2, 2, ExpandHorizontal=true, ExpandVertical=false);
 
             // Text entries for Get/Delete            
             TextEntry getOrDeleteKeyEntry = new TextEntry { PlaceholderText = "Enter key..." };
             TextEntry getOrDeleteResult = new TextEntry { PlaceholderText = "Waiting for command..." };
             getOrDeleteResult.Sensitive = false;
 
-            this.AddChild(getOrDeleteKeyEntry, new Rectangle(5, 285, 280, 100));
-            this.AddChild(getOrDeleteResult, new Rectangle(5, 315, 280, 100));
+            this.Add(getOrDeleteKeyEntry, 0, 12, 1, 2, ExpandHorizontal=true, ExpandVertical=false);
+            this.Add(getOrDeleteResult, 0, 13, 1, 2, ExpandHorizontal=true, ExpandVertical=false);
 
             // Get button
             Button getButton = new Button("Get");
-            this.AddChild(getButton, new Rectangle(5, 385, 50, 30));
+            this.Add(getButton, 0, 14, 1, 2, ExpandHorizontal=true, ExpandVertical=false);
 
             // Delete button
             Button deleteButton = new Button("Delete");
-            this.AddChild(deleteButton, new Rectangle(55, 385, 50, 30));
+            this.Add(deleteButton, 0, 15, 1, 2, ExpandHorizontal=true, ExpandVertical=false);
 
             getButton.Clicked += delegate
             {
@@ -133,11 +144,17 @@ namespace PasswordManager.UI
                     return;
                 }
 
-                // Temporary, plz delete
-                MessageDialog.ShowMessage("Key : " + key);
-
-                // TODO Find password associated with the key and show
-                getOrDeleteResult.Text = "MyPassword";
+                // Find password associated with the key and show
+                Dictionary<string, string> accountData = DBManager.Instance.GetAccount(key);
+                string password;
+                if (accountData.TryGetValue("Password", out password))
+                {
+                    getOrDeleteResult.Text = password;
+                }
+                else
+                {
+                    getOrDeleteResult.Text = "No account with the given key was found in the database.";
+                }
             };
             deleteButton.Clicked += delegate
             {
@@ -151,11 +168,15 @@ namespace PasswordManager.UI
                     return;
                 }
 
-                // Temporary, plz delete
-                MessageDialog.ShowMessage("Key : " + key);
-
-                // TODO Find data entry associated with the key and delete
-                getOrDeleteResult.Text = "Entry associated with " + key + " deleted!";
+                // Delete the account
+                if (DBManager.Instance.RemoveAccount(key))
+                {
+                    getOrDeleteResult.Text = "Entry associated with " + key + " deleted!";
+                }
+                else
+                {
+                    getOrDeleteResult.Text = "No account with the given key was found in the database.";
+                }
             };
 
             gm.SetLogoutButton();
