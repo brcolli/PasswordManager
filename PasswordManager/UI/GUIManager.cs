@@ -1,4 +1,5 @@
 ﻿using System;
+using PasswordManager.Backend;
 using Xwt;
 using Application = Xwt.Application;
 using MenuItem = Xwt.MenuItem;
@@ -15,7 +16,6 @@ namespace PasswordManager.UI
 
     class GUIManager
     {
-
         public GUIManager()
         {
             Application.Initialize(ToolkitType.Gtk);
@@ -26,7 +26,7 @@ namespace PasswordManager.UI
                 Title = "Password Manager",
                 Width = 500,
                 Height = 600,
-                Resizable = false
+                Resizable = true
             };
 
             LoggedIn = false;
@@ -98,6 +98,8 @@ namespace PasswordManager.UI
             {
                 LoggedIn = false;
 
+                DBManager.Instance.CloseDB();
+
                 // Make login page
                 LoginPage = new LoginPage(this);
 
@@ -159,12 +161,12 @@ namespace PasswordManager.UI
         /// <returns>
         /// Hashed value of entry
         /// </returns>
-        public static string GetHash(string entry)
-        {
-            byte[] entryData = System.Text.Encoding.ASCII.GetBytes(entry);
-            entryData = new System.Security.Cryptography.SHA256Managed().ComputeHash(entryData);
-            return System.Text.Encoding.ASCII.GetString(entryData);
-        }
+//        public static string GetHash(string entry)
+//        {
+//            byte[] entryData = System.Text.Encoding.ASCII.GetBytes(entry);
+//            entryData = new System.Security.Cryptography.SHA256Managed().ComputeHash(entryData);
+//            return System.Text.Encoding.ASCII.GetString(entryData);
+//        }
 
         /* Getters and setters */
 

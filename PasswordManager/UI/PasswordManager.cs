@@ -1,4 +1,5 @@
 ﻿using System;
+using PasswordManager.Backend;
 using Xwt;
 
 namespace PasswordManager.UI
@@ -19,6 +20,8 @@ namespace PasswordManager.UI
             // Run
             manager.MainWindow.Show();
             Application.Run();
+            // Ensure database closes
+            DBManager.Instance.CloseDB();
             manager.MainWindow.Dispose();
         }
     }

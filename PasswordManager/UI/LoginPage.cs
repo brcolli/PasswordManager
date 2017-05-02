@@ -1,4 +1,5 @@
 ﻿using System;
+using PasswordManager.Backend;
 using Xwt;
 
 namespace PasswordManager.UI
@@ -10,7 +11,7 @@ namespace PasswordManager.UI
     /// and the other for the password.
     /// </summary>
 
-    class LoginPage: Canvas
+    class LoginPage: Table
     {
 
         /// <summary>
@@ -24,42 +25,44 @@ namespace PasswordManager.UI
             // Welcome title
             Label welcomeHeader = new Label("Welcome to Password Manager!")
             {
-                Font = this.Font.WithSize(20),
-                TextAlignment = Alignment.Center
+                Font = this.Font.WithSize(16),
+                TextAlignment = Alignment.Center,
+                Wrap = WrapMode.Word,
             };
 
             // Welcome message
             Label welcomeMessage =
-                new Label("Your quick, simple local password storage device. \nPlease login or create a user below to begin.")
+                new Label("Your quick, simple local password storage device. Please login or create a user below to begin.")
                 {
                     Font = this.Font.WithSize(10),
-                    TextAlignment = Alignment.Center
+                    TextAlignment = Alignment.Center, 
+                    Wrap = WrapMode.Word
                 };
 
-            this.AddChild(welcomeHeader, new Rectangle(40, 0, 400, 100));
-            this.AddChild(welcomeMessage, new Rectangle(90, 50, 300, 100));
+            this.Add(welcomeHeader, 0, 0, 2, 2, ExpandHorizontal=true, ExpandVertical=false);
+            this.Add(welcomeMessage, 0, 2, 2, 2, ExpandHorizontal=true, ExpandVertical=false);
 
             // Text for entries
             Label userLabel = new Label("User:");
             Label passwordLabel = new Label("Password:");
 
-            this.AddChild(userLabel, new Rectangle(140, 200, 100, 100));
-            this.AddChild(passwordLabel, new Rectangle(140, 230, 100, 100));
+            this.Add(userLabel, 0, 4, 1, 1, ExpandHorizontal=true, ExpandVertical=false);
+            this.Add(passwordLabel, 0, 5, 1, 1, ExpandHorizontal=true, ExpandVertical=false);
 
             // Text entries
             TextEntry userEntry = new TextEntry {PlaceholderText = "Enter username..."};
             PasswordEntry passwordEntry = new PasswordEntry {PlaceholderText = "Enter password..."};
 
-            this.AddChild(userEntry, new Rectangle(200, 200, 100, 100));
-            this.AddChild(passwordEntry, new Rectangle(200, 230, 100, 100));
+            this.Add(userEntry, 1, 4, 1, 1, ExpandHorizontal=true, ExpandVertical=false);
+            this.Add(passwordEntry, 1, 5, 1, 1, ExpandHorizontal=true, ExpandVertical=false);
 
             // Login button
             Button loginButton = new Button("Login");
-            this.AddChild(loginButton, new Rectangle(200, 300, 50, 30));
+            this.Add(loginButton, 0, 6, 1, 1, ExpandHorizontal=true, ExpandVertical=false);
 
             // Create user button
             Button createUserButton = new Button("Create User");
-            this.AddChild(createUserButton, new Rectangle(250, 300, 80, 30));
+            this.Add(createUserButton, 1, 6, 1, 1, ExpandHorizontal=true, ExpandVertical=false);
 
             loginButton.Clicked += delegate
             {
@@ -76,14 +79,29 @@ namespace PasswordManager.UI
                     return;
                 }
 
-                // Convert to SHA256
-                string userHash = GUIManager.GetHash(user);
-                string passwordHash = GUIManager.GetHash(password);
+                // Ensure user exists
+                if (!DBManager.Instance.DBExists(user))
+                {
+                    MessageDialog.ShowError("User with the given name does not exist.");
+                    return;
+                }
 
-                // Temporary, plz delete
-                MessageDialog.ShowMessage("User hash: " + userHash + "\n" + "Password hash: " + passwordHash);
-
-                // TODO Find user in database, check password
+                // Log in
+                switch (DBManager.Instance.OpenDB(user, password))
+                {
+                    case 0:
+                        MessageDialog.ShowError("Incorrect password provided.");
+                        return;
+                    case 2:
+                        MessageDialog.ShowError("No password hash file was found! Database cannot be decrypted.");
+                        return;
+                    case 3:
+                        MessageDialog.ShowError("Database open failed.");
+                        return;
+                    case 4:
+                        MessageDialog.ShowError("No database found and failed to create one. This should be impossible.");
+                        return;
+                }
 
                 // Make management page
                 ManagementPage managementPage = new ManagementPage(gm);
@@ -106,14 +124,30 @@ namespace PasswordManager.UI
                     return;
                 }
 
-                // Convert to SHA256
-                string userHash = GUIManager.GetHash(user);
-                string passwordHash = GUIManager.GetHash(password);
+                // Don't allow overwriting users
+                if (DBManager.Instance.DBExists(user))
+                {
+                    MessageDialog.ShowError("User with the given name already exists.");
+                    return;
+                }
 
-                // Temporary, plz delete
-                MessageDialog.ShowMessage("User hash: " + userHash + "\n" + "Password hash: " + passwordHash);
-
-                // TODO Add user/password to database
+                // Log in
+                switch (DBManager.Instance.OpenDB(user, password))
+                {
+                    case 0:
+                        MessageDialog.ShowError("Incorrect password provided. This makes no sense.");
+                        return;
+                    case 2:
+                        MessageDialog.ShowError("No password hash file was found! Database cannot be decrypted. This makes no sense.");
+                        return;
+                    case 3:
+                        // This shouldn't happen
+                        MessageDialog.ShowError("Our encryption scheme is broken!");
+                        return;
+                    case 4:
+                        MessageDialog.ShowError("No database found and failed to create one. This should be impossible.");
+                        return;
+                }
 
                 // Make management page
                 ManagementPage managementPage = new ManagementPage(gm);

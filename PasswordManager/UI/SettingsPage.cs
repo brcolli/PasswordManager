@@ -26,12 +26,13 @@ namespace PasswordManager.UI
 
             // Welcome message
             Label settingsMessage =
-                new Label("The master password determines how your\n" +
-                          "passwords are encrypted. Here, you can\n" +
+                new Label("The master password determines how your " +
+                          "passwords are encrypted. Here, you can " +
                           "choose to update your password.")
                 {
                     Font = this.Font.WithSize(10),
-                    TextAlignment = Alignment.Center
+                    TextAlignment = Alignment.Center,
+                    Wrap = WrapMode.Word
                 };
 
             this.AddChild(settingsTitle, new Rectangle(40, 0, 400, 100));

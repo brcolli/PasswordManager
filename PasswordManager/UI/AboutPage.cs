@@ -9,7 +9,7 @@ namespace PasswordManager.UI
     /// such as developers, use, etc.
     /// </summary>
 
-    class AboutPage: Canvas
+    class AboutPage: Table
     {
 
         /// <summary>
@@ -23,22 +23,24 @@ namespace PasswordManager.UI
             Label aboutLabel = new Label("About")
             {
                 Font = this.Font.WithSize(20),
-                TextAlignment = Alignment.Center
+                TextAlignment = Alignment.Center,
+                Wrap = WrapMode.Word
             };
 
             // About message
             Label aboutMessage =
-                new Label("This Password Manager was designed for\n" +
-                          "Spring 2017 CS 460's Final Project by\n" +
+                new Label("This Password Manager was designed for " +
+                          "Spring 2017 CS 460's Final Project by " +
                           "Benjamin Collins (brcolli2) and Bradley Anderson (bsndrsn2).")
                 {
                     Font = this.Font.WithSize(10),
-                    TextAlignment = Alignment.Center
+                    TextAlignment = Alignment.Center,
+                    Wrap = WrapMode.Word
                 };
 
             // Add text
-            this.AddChild(aboutLabel, new Rectangle(40, 0, 400, 100));
-            this.AddChild(aboutMessage, new Rectangle(50, 50, 400, 100));
+            this.Add(aboutLabel, 0, 0, 1, 1, ExpandHorizontal=true, ExpandVertical=false);
+            this.Add(aboutMessage,0, 1, 1, 1, ExpandHorizontal=true, ExpandVertical=false);
 
             gm.SetLogoutButton();
         }

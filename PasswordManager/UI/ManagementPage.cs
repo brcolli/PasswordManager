@@ -26,17 +26,18 @@ namespace PasswordManager.UI
             Label updateLabel = new Label("Add/Update")
             {
                 Font = this.Font.WithSize(20),
-                TextAlignment = Alignment.Center
+                TextAlignment = Alignment.Center,
+                Wrap = WrapMode.Word
             };
             
             Label updateMessage =
-                new Label("Here you can add or\n" +
-                          "update a password entry.\n" +
-                          "Simply enter the key you\n" +
-                          "would like to associate a\n" +
-                          "password to in the first box\n" +
-                          "and enter the password in the\n" +
-                          "second box. The password will\n" +
+                new Label("Here you can add or " +
+                          "update a password entry. " +
+                          "Simply enter the key you " +
+                          "would like to associate a " +
+                          "password to in the first box " +
+                          "and enter the password in the " +
+                          "second box. The password will " +
                           "then be hashed and stored.")
                 {
                     Font = this.Font.WithSize(10),
@@ -83,17 +84,18 @@ namespace PasswordManager.UI
             Label getOrDeleteLabel = new Label("Get/Delete")
             {
                 Font = this.Font.WithSize(20),
-                TextAlignment = Alignment.Center
+                TextAlignment = Alignment.Center,
+                Wrap = WrapMode.Word
             };
 
             Label getOrDeleteMessage =
-                new Label("Here you can get or delete\n" +
-                          "an entry by entering in the\n" +
-                          "key associated with the\n" +
-                          "password you'd like to\n" +
-                          "operate on. Then press 'Delete'\n" +
-                          "to remove the entry from the\n" +
-                          "database or press 'Get' to get\n" +
+                new Label("Here you can get or delete " +
+                          "an entry by entering in the " +
+                          "key associated with the " +
+                          "password you'd like to " +
+                          "operate on. Then press 'Delete' " +
+                          "to remove the entry from the " +
+                          "database or press 'Get' to get " +
                           "the value from the database.")
                 {
                     Font = this.Font.WithSize(10),
